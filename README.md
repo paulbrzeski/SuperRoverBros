@@ -1,5 +1,5 @@
 # Super Rover Bros
-A procedural WebGL night cycling rhythm game with VR support.
+A procedural WebGL night cycling game with VR support.
 
 ## Concept:
 First person cycling game with Rez-like music and effects. Would be cool to do something with the music - like if a player crashes into a tree, a text to speech engine says "Tree" in a creepy voice and songs about trees start playing from Soundcloud...
