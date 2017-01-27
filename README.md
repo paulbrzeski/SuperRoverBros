@@ -1,4 +1,4 @@
-# SuperRoverBros
+# Super Rover Bros
 A procedural WebGL night cycling rhythm game with VR support.
 
 ## Concept:
