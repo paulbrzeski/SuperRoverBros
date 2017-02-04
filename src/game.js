@@ -1,5 +1,5 @@
 var container, stats, controls, clock, bike, road;
-console.log(stats);
+var front_wheel, rear_wheel;
 var camera, scene, renderer;
 
 var windowHalfX = window.innerWidth / 2;
@@ -20,9 +20,9 @@ function init() {
 
   clock = new THREE.Clock();
 
-  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-  camera.position.x = -75;
-  camera.position.z = 100;
+  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
+  camera.position.x = -105;
+  camera.position.z = 150;
 
   // scene
 
@@ -36,7 +36,9 @@ function init() {
   scene.add( directionalLight );
  
   // model
-
+  rear_wheel = new THREE.Group();
+  front_wheel = new THREE.Group();
+  
   var onProgress = function ( xhr ) {
     if ( xhr.lengthComputable ) {
       var percentComplete = xhr.loaded / xhr.total * 100;
@@ -63,7 +65,7 @@ function init() {
       object.rotation.y = Math.PI / 2;
       bike = object;
       scene.add( bike );
-      
+  
     }, onProgress, onError );
 
   });
@@ -77,7 +79,7 @@ function init() {
   road = new THREE.Mesh( new THREE.PlaneGeometry( 300, 6000, 4, 4 ), road_material );
   road.position.set( 0, -50, -400 );
   road.rotation.x = Math.PI / 2;
-  scene.add( road );
+  //scene.add( road );
 
 
   renderer = new THREE.WebGLRenderer();
@@ -142,15 +144,18 @@ var front_spokes = [
 ];
 
 function rotateSpokes(delta) {
-
+  delta *= 10;
   bike.children.forEach(function(mes, index) { 
     if ( mes.name.indexOf('Cone') >= 0 )
     {
       cone_index = parseInt(mes.name.replace('Cone',''));
       if (rear_spokes.indexOf(cone_index) >=0 ){
-        //mes.rotateZ(Math.PI / 2); 
-        mes.position.x += 12 * Math.sin(delta);
-        mes.position.y += 12 * Math.sin(delta);
+        bike.remove(mes);
+        rear_wheel.add(mes);
+      }
+      if (front_spokes.indexOf(cone_index) >=0 ){
+        bike.remove(mes);
+        front_wheel.add(mes);
       }
     }
   });

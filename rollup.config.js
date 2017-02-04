@@ -5,8 +5,8 @@ export default {
   moduleName: 'game',
   entry: 'src/game.js',
   plugins: [
-    buble(),
-    uglify()
+    buble()//,
+    //uglify()
   ],
   dest: 'dist/game.js'
 };
