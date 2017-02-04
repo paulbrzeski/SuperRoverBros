@@ -140,8 +140,6 @@ function render() {
   }
 
   if (effectController && effectController.inclination) {
-    //effectController.inclination += Math.sin(delta * 100);
-    console.log(effectController.inclination);
     var distance = 400000;
   
     var uniforms = sky.uniforms;
