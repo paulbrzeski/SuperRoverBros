@@ -6,6 +6,10 @@ var bike;
 var road;
 var front_wheel;
 var rear_wheel;
+var effectController;
+var sky;
+var sunSphere;
+
 var camera;
 var scene;
 var renderer;
@@ -28,7 +32,7 @@ function init() {
 
   clock = new THREE.Clock();
 
-  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
+  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000000 );
   camera.position.y = 30;
   camera.position.z = 120;
 
@@ -100,7 +104,7 @@ function init() {
  
 
   window.addEventListener( 'resize', onWindowResize, false );
-
+initSky();
 }
 
 function onWindowResize() {
@@ -118,6 +122,7 @@ function onWindowResize() {
 function animate() {
 
   requestAnimationFrame( animate );
+  TWEEN.update();
   render();
 
 }
@@ -134,7 +139,29 @@ function render() {
     road.material.map.offset.y -= .05;
   }
 
+  if (effectController && effectController.inclination) {
+    //effectController.inclination += Math.sin(delta * 100);
+    console.log(effectController.inclination);
+    var distance = 400000;
+  
+    var uniforms = sky.uniforms;
+    uniforms.turbidity.value = effectController.turbidity;
+    uniforms.rayleigh.value = effectController.rayleigh;
+    uniforms.luminance.value = effectController.luminance;
+    uniforms.mieCoefficient.value = effectController.mieCoefficient;
+    uniforms.mieDirectionalG.value = effectController.mieDirectionalG;
+    var theta = Math.PI * ( effectController.inclination - 0.5 );
+    var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
+    sunSphere.position.x = distance * Math.cos( phi );
+    sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
+    sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
+    sunSphere.visible = effectController.sun;
+    sky.uniforms.sunPosition.value.copy( sunSphere.position );
+  }
+
   controls.update();
+  stats.update();
+  
   renderer.render( scene, camera );
 
 }
@@ -199,4 +226,36 @@ function prepareSpokes(delta) {
     scene.add(rear_wheel);
     rear_present = true;
   }
+}
+
+function initSky() {
+  // Add Sky Mesh
+  sky = new THREE.Sky();
+  scene.add( sky.mesh );
+  // Add Sun Helper
+  sunSphere = new THREE.Mesh(
+    new THREE.SphereBufferGeometry( 20000, 16, 8 ),
+    new THREE.MeshBasicMaterial( { color: 0xffffff } )
+  );
+  sunSphere.position.y = - 700000;
+  sunSphere.visible = false;
+  scene.add( sunSphere );
+  /// GUI
+  effectController  = {
+    turbidity: 10,
+    rayleigh: 2,
+    mieCoefficient: 0.005,
+    mieDirectionalG: 0.8,
+    luminance: 1,
+    inclination: 0.4, // elevation / inclination
+    azimuth: 0.15, // Facing front,
+    sun: ! true
+  };
+
+  var sun_cycle = new TWEEN.Tween(effectController)
+    .to({inclination: 0.6}, 10000)
+    .repeat(Infinity)
+    .yoyo(true)
+    .start();
+
 }
