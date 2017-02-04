@@ -1,9 +1,7 @@
 
-var container, stats;
+var container, stats, controls, bike, road;
 
 var camera, scene, renderer;
-
-var mouseX = 0, mouseY = 0;
 
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
@@ -19,7 +17,7 @@ function init() {
   document.body.appendChild( container );
 
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-  camera.position.z = 250;
+  camera.position.z = 100;
 
   // scene
 
@@ -31,7 +29,7 @@ function init() {
   var directionalLight = new THREE.DirectionalLight( 0xffeedd );
   directionalLight.position.set( 0, 0, 1 ).normalize();
   scene.add( directionalLight );
-
+ 
   // model
 
   var onProgress = function ( xhr ) {
@@ -46,31 +44,45 @@ function init() {
   THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
 
   var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath( 'assets/' );
   mtlLoader.load( 'bike.mtl', function( materials ) {
 
     materials.preload();
 
     var objLoader = new THREE.OBJLoader();
     objLoader.setMaterials( materials );
+    objLoader.setPath( 'assets/' );
     objLoader.load( 'bike.obj', function ( object ) {
 
-      object.position.y = - 95;
-      scene.add( object );
+      object.position.y = - 50;
+      object.rotation.y = Math.PI / 2;
+      bike = object;
+      scene.add( bike );
 
     }, onProgress, onError );
 
   });
 
-  //
+  // Road
+  var road_texture = new THREE.TextureLoader().load( 'assets/road.jpg' );
+  road_texture.wrapS = road_texture.wrapT = THREE.RepeatWrapping;
+  road_texture.repeat.set(1,20);
+  road_texture.anisotropy = 16;
+  var road_material = new THREE.MeshLambertMaterial( { map: road_texture, side: THREE.DoubleSide } );
+  road = new THREE.Mesh( new THREE.PlaneGeometry( 300, 6000, 4, 4 ), road_material );
+  road.position.set( 0, -50, -400 );
+  road.rotation.x = Math.PI / 2;
+  scene.add( road );
+
 
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   container.appendChild( renderer.domElement );
 
-  document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-  //
+  controls = new THREE.OrbitControls( camera, renderer.domElement );
+  //controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+ 
 
   window.addEventListener( 'resize', onWindowResize, false );
 
@@ -88,15 +100,6 @@ function onWindowResize() {
 
 }
 
-function onDocumentMouseMove( event ) {
-
-  mouseX = ( event.clientX - windowHalfX ) / 2;
-  mouseY = ( event.clientY - windowHalfY ) / 2;
-
-}
-
-//
-
 function animate() {
 
   requestAnimationFrame( animate );
@@ -106,11 +109,15 @@ function animate() {
 
 function render() {
 
-  camera.position.x += ( mouseX - camera.position.x ) * .05;
-  camera.position.y += ( - mouseY - camera.position.y ) * .05;
+  if (bike && bike.position) {
+    camera.lookAt( bike.position );
+  }
 
-  camera.lookAt( scene.position );
+  if (road && road.material) {
+    road.material.map.offset.y -= .05;
+  }
 
+  controls.update();
   renderer.render( scene, camera );
 
 }
