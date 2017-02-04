@@ -3,15 +3,24 @@
   <head>
     <title>Super Rover Bros
     </title>
+    <link href="/vendor/Semantic-UI/dist/semantic.min.css" rel="stylesheet">
     <link href="/dist/core.css" rel="stylesheet">
   </head>
   <body>
-    <div class="container">Test
+    <div class="ui fixed inverted menu">
+      <div class="ui container">
+        <div class="header item">Super Rover Bros</div><a class="item" href="#">Play</a><a class="item" href="#">About</a><a class="item" href="https://github.com/paulbrzeski/SuperRoverBros">Github</a>
+      </div>
+    </div>
+    <div class="ui main text container">
+      <div class="ui header">Welcome to Super Rover Bros, a WebGL cycling simulator</div>
     </div>
   </body>
   <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+  <script src="/vendor/Semantic-UI/dist/semantic.min.js"></script>
   <script src="/vendor/threejs/examples/js/libs/dat.gui.min.js"></script>
   <script src="/vendor/threejs/build/three.js"></script>
   <script src="/vendor/threejs/examples/js/libs/stats.min.js"></script>
-  <script src="/vendor/threejs/examples/js/controls/OrbitControls.js"></script> 
+  <script src="/vendor/threejs/examples/js/controls/OrbitControls.js"></script>
+  <script src="/dist/game.js"></script> 
 </html>

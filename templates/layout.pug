@@ -3,8 +3,15 @@ html
   head
     title
       block title
+    link(href='/vendor/Semantic-UI/dist/semantic.min.css', rel='stylesheet')
     link(href='/dist/core.css', rel='stylesheet')
   body
-    .container
+    .ui.fixed.inverted.menu
+      .ui.container
+        .header.item Super Rover Bros
+        a.item(href='#') Play
+        a.item(href='#') About
+        a.item(href='https://github.com/paulbrzeski/SuperRoverBros') Github
+    .ui.main.text.container
       block page
   include /templates/scripts.pug
