@@ -1,6 +1,5 @@
-
-var container, stats, controls, bike, road;
-
+var container, stats, controls, clock, bike, road;
+console.log(stats);
 var camera, scene, renderer;
 
 var windowHalfX = window.innerWidth / 2;
@@ -16,7 +15,13 @@ function init() {
   container = document.createElement( 'div' );
   document.body.appendChild( container );
 
+  stats = new Stats();
+  container.appendChild( stats.dom );
+
+  clock = new THREE.Clock();
+
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+  camera.position.x = -75;
   camera.position.z = 100;
 
   // scene
@@ -58,7 +63,7 @@ function init() {
       object.rotation.y = Math.PI / 2;
       bike = object;
       scene.add( bike );
-
+      
     }, onProgress, onError );
 
   });
@@ -108,9 +113,11 @@ function animate() {
 }
 
 function render() {
+  var delta = clock.getDelta();
 
   if (bike && bike.position) {
     camera.lookAt( bike.position );
+    rotateSpokes(delta);
   }
 
   if (road && road.material) {
@@ -120,4 +127,31 @@ function render() {
   controls.update();
   renderer.render( scene, camera );
 
+}
+
+var rear_spokes = [
+  80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+  126,127,128,129,
+  130,131,132,133,134,135,136,137,138,139,140
+];
+
+var front_spokes = [
+  96,97,98,99,100,101,102,
+  103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,
+  123,124,125
+];
+
+function rotateSpokes(delta) {
+
+  bike.children.forEach(function(mes, index) { 
+    if ( mes.name.indexOf('Cone') >= 0 )
+    {
+      cone_index = parseInt(mes.name.replace('Cone',''));
+      if (rear_spokes.indexOf(cone_index) >=0 ){
+        //mes.rotateZ(Math.PI / 2); 
+        mes.position.x += 12 * Math.sin(delta);
+        mes.position.y += 12 * Math.sin(delta);
+      }
+    }
+  });
 }
