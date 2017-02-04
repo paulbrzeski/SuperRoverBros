@@ -21,8 +21,8 @@ function init() {
   clock = new THREE.Clock();
 
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
-  camera.position.x = -105;
-  camera.position.z = 150;
+  camera.position.y = 30;
+  camera.position.z = 120;
 
   // scene
 
@@ -79,7 +79,7 @@ function init() {
   road = new THREE.Mesh( new THREE.PlaneGeometry( 300, 6000, 4, 4 ), road_material );
   road.position.set( 0, -50, -400 );
   road.rotation.x = Math.PI / 2;
-  //scene.add( road );
+  scene.add( road );
 
 
   renderer = new THREE.WebGLRenderer();
@@ -132,31 +132,62 @@ function render() {
 }
 
 var rear_spokes = [
-  80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
-  126,127,128,129,
-  130,131,132,133,134,135,136,137,138,139,140
+  80,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+  126,127,128,129,130,131,132,133,134,135,136,137,138,139,140
 ];
 
 var front_spokes = [
-  96,97,98,99,100,101,102,
-  103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,
-  123,124,125
+  96,97,98,99,100,101,102,103,104,105,106,107,108,109,
+  110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125
 ];
 
 function rotateSpokes(delta) {
-  delta *= 10;
+  delta *= Math.PI;
+  prepareSpokes(delta);
+
+  if (front_present) {
+    front_wheel.rotation.z -= delta;
+  }
+  if (rear_present) {
+    rear_wheel.rotation.z -= delta;
+  }
+}
+
+var rear_present = false, front_present = false;
+
+function prepareSpokes(delta) {
   bike.children.forEach(function(mes, index) { 
     if ( mes.name.indexOf('Cone') >= 0 )
     {
       cone_index = parseInt(mes.name.replace('Cone',''));
       if (rear_spokes.indexOf(cone_index) >=0 ){
+        mes.geometry.center();
+        rear_wheel.add(mes.clone());
         bike.remove(mes);
-        rear_wheel.add(mes);
       }
       if (front_spokes.indexOf(cone_index) >=0 ){
+        mes.geometry.center();
+        front_wheel.add(mes.clone());
         bike.remove(mes);
-        front_wheel.add(mes);
       }
     }
   });
+
+  if (front_wheel.children.length == front_spokes.length) {
+    front_wheel.scale.set(2,2,2);
+    front_wheel.position.z = - 25;
+    front_wheel.position.y = - 35.5;
+    front_wheel.rotation.y = Math.PI / 2;
+    scene.add(front_wheel);
+    front_present = true;
+  }
+
+  if (rear_wheel.children.length == rear_spokes.length) {
+    rear_wheel.scale.set(2,2,2);
+    rear_wheel.position.z = 25;
+    rear_wheel.position.y = - 35.5;
+    rear_wheel.rotation.y = Math.PI / 2;
+    scene.add(rear_wheel);
+    rear_present = true;
+  }
 }
