@@ -268,26 +268,26 @@ function initSky() {
 function buildPath () {
   boardwalk = [];
   var segments = 50;
-  var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
-  map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  
 
   for (var i = 0; i < segments; i++) {
+    var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.offset.x = Math.random() * 10;
     var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 1 } );
     var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
     object.position.set( 0, -52, -12 * i );
     object.receiveShadow = true;
-    boardwalk.push(object);
-    scene.add( boardwalk[boardwalk.length-1] );
+    boardwalk.unshift(object);
+    scene.add( boardwalk[0] );
   }
 }
 
 function animatePath(delta) {
   boardwalk.forEach(function(plank, index){
     plank.position.z += delta * 50;
-    if (plank.position.z > 100) {
+    if (plank.position.z > 80) {
       var plank_fade = new TWEEN.Tween(plank.material)
-        .to({opacity: 0.0}, 100)
+        .to({opacity: 0.0}, 250)
         .start();
     }
     if (plank.position.z > 200) {
@@ -296,13 +296,14 @@ function animatePath(delta) {
       var front_z = boardwalk[0].position.z - 12;
       var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.offset.x = Math.random() * 10;
       var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 0 } );
       var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
       object.position.set( 0, -52, front_z );
       object.receiveShadow = true;
       boardwalk.unshift(object);
       var plank_fade = new TWEEN.Tween(boardwalk[0].material)
-        .to({opacity: 1.0}, 500)
+        .to({opacity: 1.0}, 3000)
         .start();
       scene.add( boardwalk[0] );
       
