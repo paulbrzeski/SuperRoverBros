@@ -1,27 +1,34 @@
+// Instances of THREE classes
 var container;
 var stats;
 var controls;
 var clock;
-var bike;
-var road;
+// Instances of custom objects
 var front_wheel;
 var rear_wheel;
 var effectController;
-var sky;
-var sunSphere;
-
+// Instances of renderer objects
 var camera;
 var scene;
 var renderer;
+var light;
+// Instances of scene objects
+var bike;
+var road;
+var sky;
+var sunSphere;
 
+// Global variables
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
+var rear_present = false;
+var front_present = false;
 
-
+// Main script execution
 init();
 animate();
 
-
+// Function definitions
 function init() {
 
   container = document.createElement( 'div' );
@@ -37,15 +44,21 @@ function init() {
   camera.position.z = 120;
 
   // scene
-
   scene = new THREE.Scene();
 
-  var ambient = new THREE.AmbientLight( 0x444444 );
-  scene.add( ambient );
-
-  var directionalLight = new THREE.DirectionalLight( 0xffeedd );
-  directionalLight.position.set( 0, 0, 1 ).normalize();
-  scene.add( directionalLight );
+  var dLight = 300;
+  var sLight = dLight * 0.25;
+  
+  light = new THREE.DirectionalLight( 0xffffff, 1);
+  light.position.set( 500, 1500, 500 );
+  light.target.position.set( 0, 0, 0 );
+  light.castShadow = true;
+  light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 100, 20000 ) );
+  light.shadow.bias = 0.0001;
+  light.shadow.mapSize.width = 2048 * 2;
+  light.shadow.mapSize.height = 2048 * 2;
+  scene.add( light );
+  //scene.add(new THREE.CameraHelper(light.shadow.camera));
  
   // model
   rear_wheel = new THREE.Group();
@@ -76,6 +89,7 @@ function init() {
       object.position.y = - 50;
       object.rotation.y = Math.PI / 2;
       bike = object;
+      
       scene.add( bike );
   
     }, onProgress, onError );
@@ -87,14 +101,24 @@ function init() {
   road_texture.wrapS = road_texture.wrapT = THREE.RepeatWrapping;
   road_texture.repeat.set(1,20);
   road_texture.anisotropy = 16;
-  var road_material = new THREE.MeshLambertMaterial( { map: road_texture, side: THREE.DoubleSide } );
+  var road_material = new THREE.MeshPhongMaterial( { map: road_texture, side: THREE.DoubleSide } );
+  road_material.needsUpdate = true;
   road = new THREE.Mesh( new THREE.PlaneGeometry( 300, 6000, 4, 4 ), road_material );
-  road.position.set( 0, -50, -400 );
-  road.rotation.x = Math.PI / 2;
+  road.position.set( 0, -50, -1000 );
+  road.rotation.x = - Math.PI / 2;
+  road.receiveShadow = true;
+  
   scene.add( road );
 
+  // var material2 = new THREE.MeshPhongMaterial( { color: 0x11CCFF, side: THREE.DoubleSide } );
+  // var sphere = new THREE.Mesh(new THREE.SphereGeometry(50, 200, 100), material2);
+  // sphere.castShadow = true;
+  // sphere.position.set(0, 0, -300);
+  // scene.add(sphere);
 
   renderer = new THREE.WebGLRenderer();
+  renderer.shadowMap.enabled = true;
+  
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   container.appendChild( renderer.domElement );
@@ -104,7 +128,7 @@ function init() {
  
 
   window.addEventListener( 'resize', onWindowResize, false );
-initSky();
+  initSky();
 }
 
 function onWindowResize() {
@@ -116,7 +140,6 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize( window.innerWidth, window.innerHeight );
-
 }
 
 function animate() {
@@ -124,7 +147,6 @@ function animate() {
   requestAnimationFrame( animate );
   TWEEN.update();
   render();
-
 }
 
 function render() {
@@ -136,7 +158,7 @@ function render() {
   }
 
   if (road && road.material) {
-    road.material.map.offset.y -= .05;
+    road.material.map.offset.y += .025;
   }
 
   if (effectController && effectController.inclination) {
@@ -161,7 +183,6 @@ function render() {
   stats.update();
   
   renderer.render( scene, camera );
-
 }
 
 var rear_spokes = [
@@ -186,28 +207,32 @@ function rotateSpokes(delta) {
   }
 }
 
-var rear_present = false;
-var front_present = false;
 
 function prepareSpokes(delta) {
-  bike.children.forEach(function(mes, index) { 
+  bike.children.forEach(function(mes, index) {
+    mes.castShadow = true;
     if ( mes.name.indexOf('Cone') >= 0 )
     {
       cone_index = parseInt(mes.name.replace('Cone',''));
       if (rear_spokes.indexOf(cone_index) >=0 ){
         mes.geometry.center();
+        rear_spokes.splice(rear_spokes.indexOf(cone_index), 1);
         rear_wheel.add(mes.clone());
         bike.remove(mes);
       }
       if (front_spokes.indexOf(cone_index) >=0 ){
         mes.geometry.center();
+        front_spokes.splice(front_spokes.indexOf(cone_index), 1);
         front_wheel.add(mes.clone());
         bike.remove(mes);
       }
     }
+    else {
+      mes.castShadow = true;
+    }
   });
 
-  if (front_wheel.children.length == front_spokes.length) {
+  if (front_spokes.length == 0) {
     front_wheel.scale.set(2,2,2);
     front_wheel.position.z = - 25;
     front_wheel.position.y = - 35.5;
@@ -216,7 +241,7 @@ function prepareSpokes(delta) {
     front_present = true;
   }
 
-  if (rear_wheel.children.length == rear_spokes.length) {
+  if (rear_spokes.length == 0) {
     rear_wheel.scale.set(2,2,2);
     rear_wheel.position.z = 25;
     rear_wheel.position.y = - 35.5;
