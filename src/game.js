@@ -5,7 +5,7 @@ var front_wheel, rear_wheel, effectController;
 // Instances of renderer objects
 var camera, scene, renderer, light;
 // Instances of scene objects
-var bike, road, sky, sunSphere;
+var bike, boardwalk, sky, sunSphere;
 
 // Global variables
 var windowHalfX = window.innerWidth / 2;
@@ -84,26 +84,6 @@ function init() {
 
   });
 
-  // Road
-  var road_texture = new THREE.TextureLoader().load( 'assets/road.jpg' );
-  road_texture.wrapS = road_texture.wrapT = THREE.RepeatWrapping;
-  road_texture.repeat.set(1,20);
-  road_texture.anisotropy = 16;
-  var road_material = new THREE.MeshPhongMaterial( { map: road_texture, side: THREE.DoubleSide } );
-  road_material.needsUpdate = true;
-  road = new THREE.Mesh( new THREE.PlaneGeometry( 300, 6000, 4, 4 ), road_material );
-  road.position.set( 0, -50, -1000 );
-  road.rotation.x = - Math.PI / 2;
-  road.receiveShadow = true;
-  
-  //scene.add( road );
-
-  // var material2 = new THREE.MeshPhongMaterial( { color: 0x11CCFF, side: THREE.DoubleSide } );
-  // var sphere = new THREE.Mesh(new THREE.SphereGeometry(50, 200, 100), material2);
-  // sphere.castShadow = true;
-  // sphere.position.set(0, 0, -300);
-  // scene.add(sphere);
-
   buildPath();
 
   renderer = new THREE.WebGLRenderer();
@@ -147,8 +127,8 @@ function render() {
     rotateSpokes(delta);
   }
 
-  if (road && road.material) {
-    road.material.map.offset.y += .025;
+  if (boardwalk && boardwalk.length > 0) {
+    animatePath(delta);
   }
 
   if (effectController && effectController.inclination) {
@@ -274,18 +254,36 @@ function initSky() {
 }
 
 function buildPath () {
-  var segments = 30;
+  boardwalk = [];
+  var segments = 50;
   var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.anisotropy = 16;
   var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
 
   for (var i = 0; i < segments; i++) {
     var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 5, 10, 4, 4, 4 ), material );
     object.position.set( 0, -52, -12 * i );
     object.receiveShadow = true;
-    scene.add( object );
+    boardwalk.push(object);
+    scene.add( boardwalk[boardwalk.length-1] );
   }
-  
 }
-  
+
+function animatePath(delta) {
+  boardwalk.forEach(function(plank, index){
+    plank.position.z += delta * 50;
+    if (plank.position.z > 200) {
+      scene.remove(boardwalk[index]);
+      boardwalk.splice(index, 1);
+      var front_z = boardwalk[0].position.z - 12;
+      var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+      var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
+      object.position.set( 0, -52, front_z );
+      object.receiveShadow = true;
+      boardwalk.unshift(object);
+      scene.add( boardwalk[0] );
+    }
+  });
+}
