@@ -41,7 +41,7 @@ function init() {
   light.position.set( 500, 1500, 500 );
   light.target.position.set( 0, 0, 0 );
   light.castShadow = true;
-  light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 100, 20000 ) );
+  light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 45, 1, 1000, 20000 ) );
   light.shadow.bias = 0.0001;
   light.shadow.mapSize.width = 2048 * 2;
   light.shadow.mapSize.height = 2048 * 2;
@@ -96,13 +96,15 @@ function init() {
   road.rotation.x = - Math.PI / 2;
   road.receiveShadow = true;
   
-  scene.add( road );
+  //scene.add( road );
 
   // var material2 = new THREE.MeshPhongMaterial( { color: 0x11CCFF, side: THREE.DoubleSide } );
   // var sphere = new THREE.Mesh(new THREE.SphereGeometry(50, 200, 100), material2);
   // sphere.castShadow = true;
   // sphere.position.set(0, 0, -300);
   // scene.add(sphere);
+
+  buildPath();
 
   renderer = new THREE.WebGLRenderer();
   renderer.shadowMap.enabled = true;
@@ -270,3 +272,20 @@ function initSky() {
     .start();
 
 }
+
+function buildPath () {
+  var segments = 30;
+  var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
+  map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.anisotropy = 16;
+  var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+
+  for (var i = 0; i < segments; i++) {
+    var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 5, 10, 4, 4, 4 ), material );
+    object.position.set( 0, -52, -12 * i );
+    object.receiveShadow = true;
+    scene.add( object );
+  }
+  
+}
+  
