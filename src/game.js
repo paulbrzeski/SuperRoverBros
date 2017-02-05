@@ -258,10 +258,11 @@ function buildPath () {
   var segments = 50;
   var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+  
 
   for (var i = 0; i < segments; i++) {
-    var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 5, 10, 4, 4, 4 ), material );
+    var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 1 } );
+    var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
     object.position.set( 0, -52, -12 * i );
     object.receiveShadow = true;
     boardwalk.push(object);
@@ -272,18 +273,27 @@ function buildPath () {
 function animatePath(delta) {
   boardwalk.forEach(function(plank, index){
     plank.position.z += delta * 50;
+    if (plank.position.z > 100) {
+      var plank_fade = new TWEEN.Tween(plank.material)
+        .to({opacity: 0.0}, 100)
+        .start();
+    }
     if (plank.position.z > 200) {
       scene.remove(boardwalk[index]);
       boardwalk.splice(index, 1);
       var front_z = boardwalk[0].position.z - 12;
       var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
+      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 0 } );
       var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
       object.position.set( 0, -52, front_z );
       object.receiveShadow = true;
       boardwalk.unshift(object);
+      var plank_fade = new TWEEN.Tween(boardwalk[0].material)
+        .to({opacity: 1.0}, 500)
+        .start();
       scene.add( boardwalk[0] );
+      
     }
   });
 }
