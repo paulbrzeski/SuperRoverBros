@@ -17,18 +17,22 @@ var bike;
 var boardwalk;
 var sky;
 var sunSphere;
+// Controls
+var keys = reverse({
+  UP: [87, 38],
+  DOWN: [83, 40],
+  LEFT: [65, 37],
+  RIGHT: [68, 39]
+});
 
 // Global variables
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
-var rear_present = false;
-var front_present = false;
-
 // Main script execution
 init();
 animate();
 
-// Function definitions
+// Base Function definitions
 function init() {
 
   container = document.createElement( 'div' );
@@ -110,7 +114,44 @@ function init() {
  
 
   window.addEventListener( 'resize', onWindowResize, false );
+
+  var keyEvent = function (eventType) {
+    return function(event) {
+      handleKeys(eventType, event);
+    };
+  };
+  window.addEventListener( 'keyup', keyEvent(true), false);
+  window.addEventListener( 'keydown', keyEvent(false), false);
+  
   initSky();
+}
+
+// Loop through a M:1 key-value obj and reverse it so many values resolve to original key.
+function reverse(obj) {
+  var newObj = {};
+
+  for (var key in obj) {
+    
+    var isMultiDimensional = Array.isArray(obj[key]);
+    if (isMultiDimensional) {
+      for (var value in obj[key]) {
+        newObj[obj[key][value]] = key;
+      }
+    }
+    else {
+      newObj[obj[key]] = key;
+    }
+  }
+
+  return newObj;
+}
+
+function handleKeys(eventType, event) {
+  console.log(keys);
+  if (keys[event.keyCode]) {
+    // console.log(eventType, event);
+    // console.log(keys);
+  }
 }
 
 function onWindowResize() {
@@ -128,111 +169,10 @@ function animate() {
 
   requestAnimationFrame( animate );
   TWEEN.update();
-  render();
+  //render();
 }
 
-function render() {
-  var delta = clock.getDelta();
-
-  if (bike && bike.position) {
-    camera.lookAt( bike.position );
-    rotateSpokes(delta);
-  }
-
-  if (boardwalk && boardwalk.length > 0) {
-    animatePath(delta);
-  }
-
-  if (effectController && effectController.inclination) {
-    var distance = 400000;
-  
-    var uniforms = sky.uniforms;
-    uniforms.turbidity.value = effectController.turbidity;
-    uniforms.rayleigh.value = effectController.rayleigh;
-    uniforms.luminance.value = effectController.luminance;
-    uniforms.mieCoefficient.value = effectController.mieCoefficient;
-    uniforms.mieDirectionalG.value = effectController.mieDirectionalG;
-    var theta = Math.PI * ( effectController.inclination - 0.5 );
-    var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
-    sunSphere.position.x = distance * Math.cos( phi );
-    sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
-    sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
-    sunSphere.visible = effectController.sun;
-    sky.uniforms.sunPosition.value.copy( sunSphere.position );
-  }
-
-  controls.update();
-  stats.update();
-  
-  renderer.render( scene, camera );
-}
-
-var rear_spokes = [
-  80,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
-  126,127,128,129,130,131,132,133,134,135,136,137,138,139,140
-];
-
-var front_spokes = [
-  96,97,98,99,100,101,102,103,104,105,106,107,108,109,
-  110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125
-];
-
-function rotateSpokes(delta) {
-  delta *= Math.PI;
-  prepareSpokes(delta);
-
-  if (front_present) {
-    front_wheel.rotation.z -= delta;
-  }
-  if (rear_present) {
-    rear_wheel.rotation.z -= delta;
-  }
-}
-
-
-function prepareSpokes(delta) {
-  bike.children.forEach(function(mes, index) {
-    mes.castShadow = true;
-    if ( mes.name.indexOf('Cone') >= 0 )
-    {
-      cone_index = parseInt(mes.name.replace('Cone',''));
-      if (rear_spokes.indexOf(cone_index) >=0 ){
-        mes.geometry.center();
-        rear_spokes.splice(rear_spokes.indexOf(cone_index), 1);
-        rear_wheel.add(mes.clone());
-        bike.remove(mes);
-      }
-      if (front_spokes.indexOf(cone_index) >=0 ){
-        mes.geometry.center();
-        front_spokes.splice(front_spokes.indexOf(cone_index), 1);
-        front_wheel.add(mes.clone());
-        bike.remove(mes);
-      }
-    }
-    else {
-      mes.castShadow = true;
-    }
-  });
-
-  if (front_spokes.length == 0) {
-    front_wheel.scale.set(2,2,2);
-    front_wheel.position.z = - 25;
-    front_wheel.position.y = - 35.5;
-    front_wheel.rotation.y = Math.PI / 2;
-    scene.add(front_wheel);
-    front_present = true;
-  }
-
-  if (rear_spokes.length == 0) {
-    rear_wheel.scale.set(2,2,2);
-    rear_wheel.position.z = 25;
-    rear_wheel.position.y = - 35.5;
-    rear_wheel.rotation.y = Math.PI / 2;
-    scene.add(rear_wheel);
-    rear_present = true;
-  }
-}
-
+/* World building functions */
 function initSky() {
   // Add Sky Mesh
   sky = new THREE.Sky();
@@ -280,33 +220,4 @@ function buildPath () {
     boardwalk.unshift(object);
     scene.add( boardwalk[0] );
   }
-}
-
-function animatePath(delta) {
-  boardwalk.forEach(function(plank, index){
-    plank.position.z += delta * 50;
-    if (plank.position.z > 80) {
-      var plank_fade = new TWEEN.Tween(plank.material)
-        .to({opacity: 0.0}, 250)
-        .start();
-    }
-    if (plank.position.z > 200) {
-      scene.remove(boardwalk[index]);
-      boardwalk.splice(index, 1);
-      var front_z = boardwalk[0].position.z - 12;
-      var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.offset.x = Math.random() * 10;
-      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 0 } );
-      var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
-      object.position.set( 0, -52, front_z );
-      object.receiveShadow = true;
-      boardwalk.unshift(object);
-      var plank_fade = new TWEEN.Tween(boardwalk[0].material)
-        .to({opacity: 1.0}, 3000)
-        .start();
-      scene.add( boardwalk[0] );
-      
-    }
-  });
 }

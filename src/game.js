@@ -6,6 +6,13 @@ var front_wheel, rear_wheel, effectController;
 var camera, scene, renderer, light;
 // Instances of scene objects
 var bike, boardwalk, sky, sunSphere;
+// Controls
+var keys = reverse({
+  UP: [87, 38],
+  DOWN: [83, 40],
+  LEFT: [65, 37],
+  RIGHT: [68, 39]
+});
 
 // Global variables
 var windowHalfX = window.innerWidth / 2;
@@ -16,7 +23,7 @@ var rear_present = false, front_present = false;
 init();
 animate();
 
-// Function definitions
+// Base Function definitions
 function init() {
 
   container = document.createElement( 'div' );
@@ -98,7 +105,44 @@ function init() {
  
 
   window.addEventListener( 'resize', onWindowResize, false );
+
+  var keyEvent = function (eventType) {
+    return function(event) {
+      handleKeys(eventType, event);
+    };
+  }
+  window.addEventListener( 'keyup', keyEvent(true), false);
+  window.addEventListener( 'keydown', keyEvent(false), false);
+  
   initSky();
+}
+
+// Loop through a M:1 key-value obj and reverse it so many values resolve to original key.
+function reverse(obj) {
+  var newObj = {};
+
+  for (var key in obj) {
+    
+    var isMultiDimensional = Array.isArray(obj[key]);
+    if (isMultiDimensional) {
+      for (var value in obj[key]) {
+        newObj[obj[key][value]] = key;
+      }
+    }
+    else {
+      newObj[obj[key]] = key;
+    }
+  }
+
+  return newObj;
+}
+
+function handleKeys(eventType, event) {
+  console.log(keys);
+  if (keys[event.keyCode]) {
+    // console.log(eventType, event);
+    // console.log(keys);
+  }
 }
 
 function onWindowResize() {
@@ -116,7 +160,7 @@ function animate() {
 
   requestAnimationFrame( animate );
   TWEEN.update();
-  render();
+  //render();
 }
 
 function render() {
@@ -155,6 +199,7 @@ function render() {
   renderer.render( scene, camera );
 }
 
+/* Wheel specific functions.. cause it was hard! */
 var rear_spokes = [
   80,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
   126,127,128,129,130,131,132,133,134,135,136,137,138,139,140
@@ -221,6 +266,7 @@ function prepareSpokes(delta) {
   }
 }
 
+/* World building functions */
 function initSky() {
   // Add Sky Mesh
   sky = new THREE.Sky();
@@ -297,4 +343,8 @@ function animatePath(delta) {
       
     }
   });
+}
+
+function moveBike(delta) {
+
 }
