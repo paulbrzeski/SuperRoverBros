@@ -75,6 +75,7 @@ function init() {
     objLoader.load( 'bike.obj', function ( object ) {
 
       object.position.y = - 50;
+      object.position.z = -50;
       object.rotation.y = Math.PI / 2;
       bike = object;
       
@@ -128,7 +129,7 @@ function render() {
   }
 
   if (boardwalk && boardwalk.length > 0) {
-    animatePath(delta);
+    //animatePath(delta);
   }
 
   if (effectController && effectController.inclination) {
@@ -204,7 +205,7 @@ function prepareSpokes(delta) {
 
   if (front_spokes.length == 0) {
     front_wheel.scale.set(2,2,2);
-    front_wheel.position.z = - 25;
+    front_wheel.position.z = - 75;
     front_wheel.position.y = - 35.5;
     front_wheel.rotation.y = Math.PI / 2;
     scene.add(front_wheel);
@@ -213,7 +214,7 @@ function prepareSpokes(delta) {
 
   if (rear_spokes.length == 0) {
     rear_wheel.scale.set(2,2,2);
-    rear_wheel.position.z = 25;
+    rear_wheel.position.z = -25;
     rear_wheel.position.y = - 35.5;
     rear_wheel.rotation.y = Math.PI / 2;
     scene.add(rear_wheel);

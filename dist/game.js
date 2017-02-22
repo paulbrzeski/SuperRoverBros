@@ -87,6 +87,7 @@ function init() {
     objLoader.load( 'bike.obj', function ( object ) {
 
       object.position.y = - 50;
+      object.position.z = -50;
       object.rotation.y = Math.PI / 2;
       bike = object;
       
@@ -140,7 +141,7 @@ function render() {
   }
 
   if (boardwalk && boardwalk.length > 0) {
-    animatePath(delta);
+    //animatePath(delta);
   }
 
   if (effectController && effectController.inclination) {
@@ -216,7 +217,7 @@ function prepareSpokes(delta) {
 
   if (front_spokes.length == 0) {
     front_wheel.scale.set(2,2,2);
-    front_wheel.position.z = - 25;
+    front_wheel.position.z = - 75;
     front_wheel.position.y = - 35.5;
     front_wheel.rotation.y = Math.PI / 2;
     scene.add(front_wheel);
@@ -225,7 +226,7 @@ function prepareSpokes(delta) {
 
   if (rear_spokes.length == 0) {
     rear_wheel.scale.set(2,2,2);
-    rear_wheel.position.z = 25;
+    rear_wheel.position.z = -25;
     rear_wheel.position.y = - 35.5;
     rear_wheel.rotation.y = Math.PI / 2;
     scene.add(rear_wheel);
@@ -280,33 +281,4 @@ function buildPath () {
     boardwalk.unshift(object);
     scene.add( boardwalk[0] );
   }
-}
-
-function animatePath(delta) {
-  boardwalk.forEach(function(plank, index){
-    plank.position.z += delta * 50;
-    if (plank.position.z > 80) {
-      var plank_fade = new TWEEN.Tween(plank.material)
-        .to({opacity: 0.0}, 250)
-        .start();
-    }
-    if (plank.position.z > 200) {
-      scene.remove(boardwalk[index]);
-      boardwalk.splice(index, 1);
-      var front_z = boardwalk[0].position.z - 12;
-      var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.offset.x = Math.random() * 10;
-      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 0 } );
-      var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
-      object.position.set( 0, -52, front_z );
-      object.receiveShadow = true;
-      boardwalk.unshift(object);
-      var plank_fade = new TWEEN.Tween(boardwalk[0].material)
-        .to({opacity: 1.0}, 3000)
-        .start();
-      scene.add( boardwalk[0] );
-      
-    }
-  });
 }
