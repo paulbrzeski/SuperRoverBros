@@ -47,9 +47,8 @@ function init() {
   clock = new THREE.Clock();
 
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000000 );
-  camera.position.x = -195;
+  camera.position.z = 195;
   camera.position.y = 87;
-  camera.position.z = 0;
 
   // scene
   scene = new THREE.Scene();
