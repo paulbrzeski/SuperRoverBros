@@ -17,6 +17,13 @@ var bike;
 var boardwalk;
 var sky;
 var sunSphere;
+// Controls
+var keys = reverse({
+  UP: [87, 38],
+  DOWN: [83, 40],
+  LEFT: [65, 37],
+  RIGHT: [68, 39]
+});
 
 // Global variables
 var windowHalfX = window.innerWidth / 2;
@@ -28,7 +35,7 @@ var front_present = false;
 init();
 animate();
 
-// Function definitions
+// Base Function definitions
 function init() {
 
   container = document.createElement( 'div' );
@@ -40,8 +47,9 @@ function init() {
   clock = new THREE.Clock();
 
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000000 );
-  camera.position.y = 30;
-  camera.position.z = 120;
+  camera.position.x = -195;
+  camera.position.y = 87;
+  camera.position.z = 0;
 
   // scene
   scene = new THREE.Scene();
@@ -85,13 +93,25 @@ function init() {
     objLoader.setMaterials( materials );
     objLoader.setPath( 'assets/' );
     objLoader.load( 'bike.obj', function ( object ) {
-
-      object.position.y = - 50;
-      object.position.z = -50;
-      object.rotation.y = Math.PI / 2;
       bike = object;
-      
+     
+      bike.add(camera);
       scene.add( bike );
+      bike.position.y = - 50;
+      bike.position.z = -50;
+      bike.rotateY(Math.PI / 2);
+
+      bike.updateMatrix();
+      bike.children.forEach(function(mesh){
+        if (mesh.geometry) {
+          mesh.geometry.applyMatrix( bike.matrix );
+        }
+      });
+
+      bike.position.set( 0, 0, 0 );
+      bike.rotation.set( 0, 0, 0 );
+      bike.scale.set( 1, 1, 1 );
+      bike.updateMatrix();
   
     }, onProgress, onError );
 
@@ -111,7 +131,53 @@ function init() {
  
 
   window.addEventListener( 'resize', onWindowResize, false );
+
+  var keyEvent = function (eventType) {
+    return function(event) {
+      handleKeys(eventType, event);
+    };
+  };
+  window.addEventListener( 'keyup', keyEvent(true), false);
+  window.addEventListener( 'keydown', keyEvent(false), false);
+  
   initSky();
+}
+
+// Loop through a M:1 key-value obj and reverse it so many values resolve to original key.
+function reverse(obj) {
+  var newObj = {};
+
+  for (var key in obj) {
+    
+    var isMultiDimensional = Array.isArray(obj[key]);
+    if (isMultiDimensional) {
+      for (var value in obj[key]) {
+        newObj[obj[key][value]] = key;
+      }
+    }
+    else {
+      newObj[obj[key]] = key;
+    }
+  }
+
+  return newObj;
+}
+
+function handleKeys(eventType, event) {
+  if (keys[event.keyCode]) {   
+    if (keys[event.keyCode] === "UP") {
+      bike.translateZ(-1);
+    }
+    if (keys[event.keyCode] === "DOWN") {
+      bike.translateZ(1);
+    }
+    if (keys[event.keyCode] === "LEFT") {
+      bike.rotateY(Math.PI/180);
+    }
+    if (keys[event.keyCode] === "RIGHT") {
+      bike.rotateY(-Math.PI/180);
+    }
+  }
 }
 
 function onWindowResize() {
@@ -136,7 +202,6 @@ function render() {
   var delta = clock.getDelta();
 
   if (bike && bike.position) {
-    camera.lookAt( bike.position );
     rotateSpokes(delta);
   }
 
@@ -168,6 +233,7 @@ function render() {
   renderer.render( scene, camera );
 }
 
+/* Wheel specific functions.. cause it was hard! */
 var rear_spokes = [
   80,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
   126,127,128,129,130,131,132,133,134,135,136,137,138,139,140
@@ -180,13 +246,15 @@ var front_spokes = [
 
 function rotateSpokes(delta) {
   delta *= Math.PI;
-  prepareSpokes(delta);
+  if (front_spokes.length > 0 || rear_spokes > 0) {
+    prepareSpokes(delta);
+  }
 
   if (front_present) {
-    front_wheel.rotation.z -= delta;
+    front_wheel.rotation.x -= delta;
   }
   if (rear_present) {
-    rear_wheel.rotation.z -= delta;
+    rear_wheel.rotation.x -= delta;
   }
 }
 
@@ -217,23 +285,22 @@ function prepareSpokes(delta) {
 
   if (front_spokes.length == 0) {
     front_wheel.scale.set(2,2,2);
-    front_wheel.position.z = - 75;
-    front_wheel.position.y = - 35.5;
-    front_wheel.rotation.y = Math.PI / 2;
-    scene.add(front_wheel);
+    front_wheel.position.z = -75;
+    front_wheel.position.y = -35;
+    bike.add(front_wheel);
     front_present = true;
   }
 
   if (rear_spokes.length == 0) {
     rear_wheel.scale.set(2,2,2);
     rear_wheel.position.z = -25;
-    rear_wheel.position.y = - 35.5;
-    rear_wheel.rotation.y = Math.PI / 2;
-    scene.add(rear_wheel);
+    rear_wheel.position.y = -35;
+    bike.add(rear_wheel);
     rear_present = true;
   }
 }
 
+/* World building functions */
 function initSky() {
   // Add Sky Mesh
   sky = new THREE.Sky();
