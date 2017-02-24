@@ -7,12 +7,60 @@ var camera, scene, renderer, light;
 // Instances of scene objects
 var bike, boardwalk, sky, sunSphere;
 // Controls
-var keys = reverse({
-  UP: [87, 38],
-  DOWN: [83, 40],
-  LEFT: [65, 37],
-  RIGHT: [68, 39]
-});
+var key_states = {},
+    key_mappings = {
+      UP:      [87, 38],
+      DOWN:    [83, 40],
+      LEFT:    [65, 37],
+      RIGHT:   [68, 39]
+    },
+    reverse_key_mappings = reverse(key_mappings);
+
+function setupKeyStates() {
+  for (var button in key_mappings) {
+    // Populate the key state array with a status field for the key.
+    key_states[button] = 'up';
+  }
+}
+
+function handleKeypress(eventType, event) {
+  var new_state;
+  if (eventType == 'up') {
+    new_state = 'up';
+  }
+  if (eventType == 'down') {
+    new_state = 'down';
+  }
+  if (reverse_key_mappings[event.keyCode]) {   
+    if (reverse_key_mappings[event.keyCode] === "UP") {
+      key_states['UP'] = new_state;
+    }
+    if (reverse_key_mappings[event.keyCode] === "DOWN") {
+      key_states['DOWN'] = new_state;
+    }
+    if (reverse_key_mappings[event.keyCode] === "LEFT") {
+      key_states['LEFT'] = new_state;
+    }
+    if (reverse_key_mappings[event.keyCode] === "RIGHT") {
+      key_states['RIGHT'] = new_state;
+    }
+  }
+}
+
+function animateKeypress() {
+  if (key_states['UP'] == 'down') {
+    bike.translateZ(-1);
+  }
+  if (key_states['DOWN'] == 'down') {
+    bike.translateZ(1);
+  }
+  if (key_states['LEFT'] == 'down') {
+    bike.rotateY(Math.PI/180);
+  }
+  if (key_states['RIGHT'] == 'down') {
+    bike.rotateY(-Math.PI/180);
+  }
+}
 
 // Global variables
 var windowHalfX = window.innerWidth / 2;
@@ -25,7 +73,7 @@ animate();
 
 // Base Function definitions
 function init() {
-
+  setupKeyStates();
   container = document.createElement( 'div' );
   document.body.appendChild( container );
 
@@ -121,11 +169,11 @@ function init() {
 
   var keyEvent = function (eventType) {
     return function(event) {
-      handleKeys(eventType, event);
+      handleKeypress(eventType, event);
     };
   }
-  window.addEventListener( 'keyup', keyEvent(true), false);
-  window.addEventListener( 'keydown', keyEvent(false), false);
+  window.addEventListener( 'keyup', keyEvent('up'), false);
+  window.addEventListener( 'keydown', keyEvent('down'), false);
   
   initSky();
 }
@@ -150,23 +198,6 @@ function reverse(obj) {
   return newObj;
 }
 
-function handleKeys(eventType, event) {
-  if (keys[event.keyCode]) {   
-    if (keys[event.keyCode] === "UP") {
-      bike.translateZ(-1);
-    }
-    if (keys[event.keyCode] === "DOWN") {
-      bike.translateZ(1);
-    }
-    if (keys[event.keyCode] === "LEFT") {
-      bike.rotateY(Math.PI/180);
-    }
-    if (keys[event.keyCode] === "RIGHT") {
-      bike.rotateY(-Math.PI/180);
-    }
-  }
-}
-
 function onWindowResize() {
 
   windowHalfX = window.innerWidth / 2;
@@ -181,6 +212,7 @@ function onWindowResize() {
 function animate() {
 
   requestAnimationFrame( animate );
+  animateKeypress();
   TWEEN.update();
   render();
 }
