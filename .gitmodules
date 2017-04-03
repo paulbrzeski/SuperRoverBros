@@ -4,3 +4,6 @@
 [submodule "vendor/Semantic-UI"]
 	path = vendor/Semantic-UI
 	url = https://github.com/Semantic-Org/Semantic-UI.git
+[submodule "vendor/cannon"]
+	path = vendor/cannon
+	url = https://github.com/schteppe/cannon.js.git

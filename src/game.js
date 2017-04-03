@@ -16,6 +16,25 @@ var key_states = {},
     },
     reverse_key_mappings = reverse(key_mappings);
 
+// Setup our world
+var world = new CANNON.World();
+world.gravity.set(0, 0, -9.82); // m/s²
+world.broadphase = new CANNON.NaiveBroadphase();
+world.solver.iterations = 20;
+
+
+// Setup variables for bike physics
+var bikeBox, body, shape;
+shape = new CANNON.Box(new CANNON.Vec3(1,1,1));
+mass = 1;
+body = new CANNON.Body({
+  mass: 1
+});
+body.addShape(shape);
+body.angularVelocity.set(0,10,0);
+body.angularDamping = 0.5;
+world.addBody(body);
+
 function setupKeyStates() {
   for (var button in key_mappings) {
     // Populate the key state array with a status field for the key.
@@ -149,7 +168,9 @@ function init() {
       bike.position.set( 0, 0, 0 );
       bike.scale.set( 1, 1, 1 );
       bike.updateMatrix();
-      //bike.add( new THREE.BoxHelper( bike ) );
+      
+      bikeBox = new THREE.BoxHelper( bike );
+
       bike.add(camera);
 
     }, onProgress, onError );
