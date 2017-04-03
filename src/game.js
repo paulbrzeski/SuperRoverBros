@@ -47,12 +47,15 @@ function handleKeypress(eventType, event) {
   }
 }
 
-function animateKeypress() {
+function animateKeypress(delta) {
+
   if (key_states['UP'] == 'down') {
     bike.translateZ(-1);
+    rotateSpokes(delta);
   }
   if (key_states['DOWN'] == 'down') {
     bike.translateZ(1);
+    rotateSpokes(-delta);
   }
   if (key_states['LEFT'] == 'down') {
     bike.rotateY(Math.PI/180);
@@ -129,8 +132,7 @@ function init() {
     objLoader.setPath( 'assets/' );
     objLoader.load( 'bike.obj', function ( object ) {
       bike = object;
-     
-      bike.add(camera);
+
       scene.add( bike );
       bike.position.y = - 50;
       bike.position.z = -50;
@@ -140,14 +142,16 @@ function init() {
       bike.children.forEach(function(mesh){
         if (mesh.geometry) {
           mesh.geometry.applyMatrix( bike.matrix );
+          //bike.add( new THREE.BoxHelper( mesh ) );
         }
       });
-
-      bike.position.set( 0, 0, 0 );
       bike.rotation.set( 0, 0, 0 );
+      bike.position.set( 0, 0, 0 );
       bike.scale.set( 1, 1, 1 );
       bike.updateMatrix();
-  
+      //bike.add( new THREE.BoxHelper( bike ) );
+      bike.add(camera);
+
     }, onProgress, onError );
 
   });
@@ -210,20 +214,15 @@ function onWindowResize() {
 }
 
 function animate() {
-
+  var delta = clock.getDelta();
   requestAnimationFrame( animate );
-  animateKeypress();
+  animateKeypress(delta);
   TWEEN.update();
-  render();
+  render(delta);
 }
 
-function render() {
-  var delta = clock.getDelta();
-
-  if (bike && bike.position) {
-    rotateSpokes(delta);
-  }
-
+function render(delta) {
+  
   if (boardwalk && boardwalk.length > 0) {
     //animatePath(delta);
   }
@@ -264,7 +263,7 @@ var front_spokes = [
 ];
 
 function rotateSpokes(delta) {
-  delta *= Math.PI;
+
   if (front_spokes.length > 0 || rear_spokes > 0) {
     prepareSpokes(delta);
   }
@@ -303,7 +302,7 @@ function prepareSpokes(delta) {
   });
 
   if (front_spokes.length == 0) {
-    front_wheel.scale.set(2,2,2);
+    front_wheel.scale.set(2.15,2.15,2.15);
     front_wheel.position.z = -75;
     front_wheel.position.y = -35;
     bike.add(front_wheel);
@@ -311,7 +310,7 @@ function prepareSpokes(delta) {
   }
 
   if (rear_spokes.length == 0) {
-    rear_wheel.scale.set(2,2,2);
+    rear_wheel.scale.set(2.15,2.15,2.15);
     rear_wheel.position.z = -25;
     rear_wheel.position.y = -35;
     bike.add(rear_wheel);
