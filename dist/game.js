@@ -237,13 +237,13 @@ function render() {
   }
 
   if (boardwalk && boardwalk.length > 0) {
-    //animatePath(delta);
+    animatePath(delta);
   }
 
   if (effectController && effectController.inclination) {
     var distance = 400000;
   
-    var uniforms = sky.uniforms;
+    var uniforms = sky.material.uniforms;
     uniforms.turbidity.value = effectController.turbidity;
     uniforms.rayleigh.value = effectController.rayleigh;
     uniforms.luminance.value = effectController.luminance;
@@ -255,7 +255,7 @@ function render() {
     sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
     sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
     sunSphere.visible = effectController.sun;
-    sky.uniforms.sunPosition.value.copy( sunSphere.position );
+    sky.material.uniforms.sunPosition.value.copy( sunSphere.position );
   }
 
   controls.update();
@@ -335,7 +335,8 @@ function prepareSpokes(delta) {
 function initSky() {
   // Add Sky Mesh
   sky = new THREE.Sky();
-  scene.add( sky.mesh );
+  sky.scale.setScalar( 450000 );
+  scene.add( sky );
   // Add Sun Helper
   sunSphere = new THREE.Mesh(
     new THREE.SphereBufferGeometry( 20000, 16, 8 ),
@@ -369,7 +370,7 @@ function buildPath () {
   var segments = 50;
 
   for (var i = 0; i < segments; i++) {
-    var map = new THREE.TextureLoader().load( '/vendor/threejs/examples/textures/hardwood2_diffuse.jpg' );
+    var map = new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/hardwood2_diffuse.jpg' );
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
     map.offset.x = Math.random() * 10;
     var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 1 } );
@@ -379,4 +380,33 @@ function buildPath () {
     boardwalk.unshift(object);
     scene.add( boardwalk[0] );
   }
+}
+
+function animatePath(delta) {
+  boardwalk.forEach(function(plank, index){
+    plank.position.z += delta * 50;
+    if (plank.position.z > 80) {
+      var plank_fade = new TWEEN.Tween(plank.material)
+        .to({opacity: 0.0}, 250)
+        .start();
+    }
+    if (plank.position.z > 200) {
+      scene.remove(boardwalk[index]);
+      boardwalk.splice(index, 1);
+      var front_z = boardwalk[0].position.z - 12;
+      var map = new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/hardwood2_diffuse.jpg' );
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.offset.x = Math.random() * 10;
+      var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide, transparent: true, opacity: 0 } );
+      var object = new THREE.Mesh( new THREE.BoxGeometry( 100, 3, 10, 4, 4, 4 ), material );
+      object.position.set( 0, -52, front_z );
+      object.receiveShadow = true;
+      boardwalk.unshift(object);
+      var plank_fade = new TWEEN.Tween(boardwalk[0].material)
+        .to({opacity: 1.0}, 3000)
+        .start();
+      scene.add( boardwalk[0] );
+      
+    }
+  });
 }
