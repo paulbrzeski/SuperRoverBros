@@ -4,11 +4,12 @@
   "description": "A web based procedural cycling game.",
   "main": "index.html",
   "scripts": {
-    "build": "pug pages -P -o . -b . && stylus styles -o dist",
-    "css": "stylus styles -o dist -w",
-    "pug": "pug pages -P -o . -b . -w",
-    "rollup": "rollup -c -w",
-    "dev": "http-server -p 80 -c-1 ."
+    "css": "stylus src/styles -o dist",
+    "pug": "pug src/pages -P -o . -b .",
+    "rollup": "rollup -c",
+    "dev-osx": "sudo http-server -p 80 -c-1 .",
+    "dev": "http-server -p 80 -c-1 .",
+    "preinstall": "npm i -g http-server rollup"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,8 @@
   },
   "homepage": "https://github.com/paulbrzeski/SuperRoverBros#readme",
   "devDependencies": {
+    "chokidar": "^2.1.1",
+    "cross-spawn": "^6.0.5",
     "pug": "^2.0.0-beta6",
     "pug-cli": "^1.0.0-alpha6",
     "rollup": "^0.41.4",
