@@ -346,7 +346,7 @@ function initSky() {
   };
 
   var sun_cycle = new TWEEN.Tween(effectController)
-    .to({inclination: 0.6}, 10000)
+    .to({inclination: 0.6}, 1000000)
     .repeat(Infinity)
     .yoyo(true)
     .start();
